@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+
+    function isCoach() {
+      return isAuthenticated() && getUserData().role == 'coach';
+    }
+
+    function isParent() {
+      return isAuthenticated() && getUserData().role == 'parent';
+    }
+
+    function isStaff() {
+      return isAdmin() || isCoach();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Players collection
+    match /players/{playerId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Sessions collection
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // Attendance collection
+    match /attendance/{attendanceId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // Invoices collection
+    match /invoices/{invoiceId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        isCoach() ||
+        (isParent() && resource.data.parentId == request.auth.uid)
+      );
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (isParent() && resource.data.parentId == request.auth.uid)
+      );
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Broadcasts collection
+    match /broadcasts/{broadcastId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && resource.data.targetUserId == request.auth.uid;
+      allow create: if isStaff();
+      allow update: if isAuthenticated() && resource.data.targetUserId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // Player Progress collection
+    match /playerProgress/{progressId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // Settings collection
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}
