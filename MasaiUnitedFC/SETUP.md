@@ -6,6 +6,7 @@
 - Node.js 18+
 - Expo CLI: `npm install -g expo-cli`
 - EAS CLI: `npm install -g eas-cli`
+- Firebase CLI: `npm install -g firebase-tools`
 - Firebase account
 
 ---
@@ -17,9 +18,9 @@
 3. Enable **Authentication** → Email/Password
 4. Enable **Firestore Database** (Start in production mode)
 5. Enable **Storage**
-6. Copy your Firebase config
+6. Copy your Firebase config from Project Settings → Your apps → SDK setup
 
-### Update Firebase Config
+### Update Firebase App Config
 Edit `src/services/firebase.js`:
 ```js
 const firebaseConfig = {
@@ -29,12 +30,34 @@ const firebaseConfig = {
   storageBucket: 'YOUR_PROJECT_ID.appspot.com',
   messagingSenderId: 'YOUR_SENDER_ID',
   appId: 'YOUR_APP_ID',
+  measurementId: 'YOUR_MEASUREMENT_ID',
 };
 ```
 
-### Deploy Firestore Security Rules
+### Update Firebase Project ID
+Edit `.firebaserc` and replace `YOUR_FIREBASE_PROJECT_ID` with your actual project ID:
+```json
+{
+  "projects": {
+    "default": "masai-united-fc"
+  }
+}
+```
+
+### Deploy Firebase Rules & Indexes
+```bash
+# Log in to Firebase CLI
+firebase login
+
+# Deploy Firestore rules + indexes and Storage rules in one command
+firebase deploy --only firestore,storage
+```
+
+Or deploy each individually:
 ```bash
 firebase deploy --only firestore:rules
+firebase deploy --only firestore:indexes
+firebase deploy --only storage
 ```
 
 ---
@@ -99,7 +122,11 @@ MasaiUnitedFC/
 ├── App.js                    # Entry point
 ├── app.json                  # Expo config
 ├── eas.json                  # EAS Build config
-├── firestore.rules           # Security rules
+├── firebase.json             # Firebase CLI deployment config
+├── .firebaserc               # Firebase project aliases
+├── firestore.rules           # Firestore security rules
+├── firestore.indexes.json    # Firestore composite indexes
+├── storage.rules             # Firebase Storage security rules
 ├── src/
 │   ├── navigation/           # Role-based navigation
 │   ├── screens/

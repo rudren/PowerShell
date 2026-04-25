@@ -1,0 +1,59 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+
+    function isStaff() {
+      return isAuthenticated() && (getUserRole() == 'admin' || getUserRole() == 'coach');
+    }
+
+    // Player profile photos
+    match /players/{playerId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
+    }
+
+    // Payment receipts and invoice attachments
+    match /invoices/{invoiceId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin()
+        && request.resource.size < 10 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType == 'application/pdf');
+      allow delete: if isAdmin();
+    }
+
+    // Broadcast attachments (images only)
+    match /broadcasts/{broadcastId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
+    }
+
+    // Player progress media (coaches and admins)
+    match /playerProgress/{progressId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff()
+        && request.resource.size < 10 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType.matches('video/.*'));
+      allow delete: if isAdmin();
+    }
+  }
+}
