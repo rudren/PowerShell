@@ -108,12 +108,21 @@ export default function PlayerManagement({ navigation }) {
           <Text style={styles.headerTitle}>Players</Text>
           <Text style={styles.headerSub}>{filtered.length} active players</Text>
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate('AddPlayer')}
-        >
-          <Ionicons name="add" size={24} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.pendingBtn}
+            onPress={() => navigation.navigate('PendingApprovals')}
+          >
+            <Ionicons name="logo-google" size={16} color="#1a73e8" />
+            <Text style={styles.pendingBtnText}>Forms</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate('AddPlayer')}
+          >
+            <Ionicons name="add" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -178,6 +187,19 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: COLORS.white },
   headerSub: { fontSize: FONTS.sizes.sm, color: 'rgba(255,255,255,0.8)' },
+  headerButtons: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  pendingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.round,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  pendingBtnText: { fontSize: FONTS.sizes.xs, color: COLORS.white, fontWeight: '700' },
   addBtn: {
     width: 42,
     height: 42,

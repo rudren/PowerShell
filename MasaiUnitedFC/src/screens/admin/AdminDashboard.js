@@ -9,6 +9,7 @@ import { getAllPlayers } from '../../services/playerService';
 import { getPaymentSummary, getUnpaidInvoices } from '../../services/paymentService';
 import { getSessions } from '../../services/attendanceService';
 import { logoutUser } from '../../services/authService';
+import { getPendingCount } from '../../services/pendingService';
 import StatCard from '../../components/common/StatCard';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../utils/theme';
 import { CLUB_INFO, PLAYER_CATEGORIES } from '../../utils/constants';
@@ -21,6 +22,7 @@ export default function AdminDashboard({ navigation }) {
   const [stats, setStats] = useState({ players: 0, unpaid: 0, sessions: 0, collected: 0 });
   const [unpaidList, setUnpaidList] = useState([]);
   const [categoryStats, setCategoryStats] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -29,12 +31,14 @@ export default function AdminDashboard({ navigation }) {
 
   const loadData = useCallback(async () => {
     try {
-      const [players, paymentSummary, unpaid, sessions] = await Promise.all([
+      const [players, paymentSummary, unpaid, sessions, pCount] = await Promise.all([
         getAllPlayers(true),
         getPaymentSummary(currentMonth, currentYear),
         getUnpaidInvoices(),
         getSessions(null, 10),
+        getPendingCount(),
       ]);
+      setPendingCount(pCount);
 
       const catStats = PLAYER_CATEGORIES.map((cat) => ({
         category: cat,
@@ -118,6 +122,27 @@ export default function AdminDashboard({ navigation }) {
             <StatCard icon="cash" label="Collected" value={`RM${Math.round(stats.collected / 1000)}k`} color={COLORS.success} />
           </View>
         </View>
+
+        {pendingCount > 0 && (
+          <TouchableOpacity
+            style={[styles.pendingBanner, SHADOWS.small]}
+            onPress={() => navigation.navigate('Players', { screen: 'PendingApprovals' })}
+            activeOpacity={0.85}
+          >
+            <View style={styles.pendingBannerLeft}>
+              <View style={styles.pendingIconWrap}>
+                <Ionicons name="logo-google" size={20} color={COLORS.white} />
+              </View>
+              <View>
+                <Text style={styles.pendingBannerTitle}>
+                  {pendingCount} Google Form Submission{pendingCount > 1 ? 's' : ''} Pending
+                </Text>
+                <Text style={styles.pendingBannerSub}>Tap to review and approve</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.white} />
+          </TouchableOpacity>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -267,6 +292,27 @@ const styles = StyleSheet.create({
   categoryRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1, justifyContent: 'flex-end' },
   categoryBar: { height: 8, borderRadius: 4, maxWidth: 80 },
   categoryCount: { fontSize: FONTS.sizes.md, fontWeight: '800', color: COLORS.dark, width: 30, textAlign: 'right' },
+  pendingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1a73e8',
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+  },
+  pendingBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1 },
+  pendingIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pendingBannerTitle: { fontSize: FONTS.sizes.sm, fontWeight: '800', color: COLORS.white },
+  pendingBannerSub: { fontSize: FONTS.sizes.xs, color: 'rgba(255,255,255,0.8)', marginTop: 1 },
   unpaidCard: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.md,

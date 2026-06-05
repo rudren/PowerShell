@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../utils/theme';
+import { getPendingCount } from '../services/pendingService';
 
 import AdminDashboard from '../screens/admin/AdminDashboard';
 import PlayerManagement from '../screens/admin/PlayerManagement';
@@ -18,6 +20,7 @@ import UserManagement from '../screens/admin/UserManagement';
 import ParentViewControl from '../screens/admin/ParentViewControl';
 import SettingsScreen from '../screens/admin/SettingsScreen';
 import RecordPaymentScreen from '../screens/admin/RecordPaymentScreen';
+import PendingApprovalsScreen from '../screens/admin/PendingApprovalsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -42,6 +45,7 @@ function PlayersStack() {
       <Stack.Screen name="PlayerManagement" component={PlayerManagement} />
       <Stack.Screen name="AddPlayer" component={AddPlayerScreen} />
       <Stack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
+      <Stack.Screen name="PendingApprovals" component={PendingApprovalsScreen} />
     </Stack.Navigator>
   );
 }
@@ -76,7 +80,44 @@ function ReportsStack() {
   );
 }
 
+function PendingBadge({ count }) {
+  if (!count) return null;
+  return (
+    <View style={badge.wrap}>
+      <Text style={badge.text}>{count > 9 ? '9+' : count}</Text>
+    </View>
+  );
+}
+
+const badge = StyleSheet.create({
+  wrap: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: COLORS.danger,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  text: { fontSize: 9, fontWeight: '900', color: COLORS.white },
+});
+
 export default function AdminNavigator() {
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const load = async () => {
+      const count = await getPendingCount();
+      setPendingCount(count);
+    };
+    load();
+    const interval = setInterval(load, 60000); // refresh every minute
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -101,7 +142,15 @@ export default function AdminNavigator() {
       <Tab.Screen
         name="Players"
         component={PlayersStack}
-        options={{ tabBarLabel: 'Players', tabBarIcon: tabBarIcon('people') }}
+        options={{
+          tabBarLabel: 'Players',
+          tabBarIcon: ({ color, size }) => (
+            <View>
+              <Ionicons name="people" size={size} color={color} />
+              <PendingBadge count={pendingCount} />
+            </View>
+          ),
+        }}
       />
       <Tab.Screen
         name="Attendance"

@@ -101,5 +101,18 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
+
+    // Pending Players (from Google Form)
+    // Allow unauthenticated writes so Apps Script can POST directly
+    match /pendingPlayers/{docId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if true; // Google Apps Script writes here (server-side, no user token)
+    }
+
+    // Update Requests (from Google Form)
+    match /updateRequests/{docId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if true;
+    }
   }
 }
