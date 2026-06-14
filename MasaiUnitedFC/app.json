@@ -7,9 +7,7 @@
     "icon": "./src/assets/images/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./src/assets/images/splash.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#0A0A1A"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -23,9 +21,7 @@
         "backgroundColor": "#C41E3A"
       },
       "splash": {
-        "image": "./src/assets/images/splash.png",
-        "resizeMode": "cover",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#0A0A1A"
       },
       "package": "com.masaiunited.fc",
       "versionCode": 1,
