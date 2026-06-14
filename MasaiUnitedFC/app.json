@@ -8,8 +8,8 @@
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#C41E3A"
+      "resizeMode": "cover",
+      "backgroundColor": "#000000"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -21,6 +21,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#C41E3A"
+      },
+      "splash": {
+        "image": "./src/assets/images/splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#000000"
       },
       "package": "com.masaiunited.fc",
       "versionCode": 1,
